@@ -1,4 +1,4 @@
-## 版本管理Git
+# 版本管理Git
 
 ### 文件区域划分
 
@@ -90,4 +90,25 @@ git rebase --continue
 ```shell
 git push --force
 ```
+
+### git原理
+
+文件组织结构：哈希前两位为目录名，后面值为文件名
+
+#### git add 原理
+
+为每个文件创建文件哈希并保存
+
+#### git commit原理
+
+1. 创建目录树哈希文件：保存暂存区所有文件的目录树结构对应哈希值，以便于查找
+2. 创建commit对象：保存目录树哈希，提交信息，以及上一次提交的指针
+
+![Git原理](C:\Users\ryli\Desktop\interview\images\Git原理.png)
+
+### git分支和标签
+
+git分支和标签以及HEAD本质都是指针，指向某次的提交对象
+
+改变分支即改变HEAD指针指向
 
