@@ -104,7 +104,7 @@ git push --force
 1. 创建目录树哈希文件：保存暂存区所有文件的目录树结构对应哈希值，以便于查找
 2. 创建commit对象：保存目录树哈希，提交信息，以及上一次提交的指针
 
-![Git原理](C:\Users\ryli\Desktop\interview\images\Git原理.png)
+![](.\images\Git原理.png)
 
 ### git分支和标签
 
