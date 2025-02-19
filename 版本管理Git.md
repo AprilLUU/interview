@@ -112,3 +112,33 @@ git分支和标签以及HEAD本质都是指针，指向某次的提交对象
 
 改变分支即改变HEAD指针指向
 
+### git rebase和git merge
+
+git rebase将一个分支的所有提交变基到另一个分支的提交之后
+
+1. 找到两个分支的公共祖先
+2.  将该分支的提交依次应用于该祖先的提交之后
+
+![](.\images\git rebase.png)
+
+git rebase发生冲突，解决冲突之后使用git rebase --continue
+
+```shell
+# rebase流程，一般不在主分支上rebase，在dev分支上rebase之后，再切换到main分支合并dev
+git checkout dev
+git rebase main
+git checkout main
+git merge dev
+```
+
+git merge将两个分支的提交合并为一个新的提交
+
+1. 找到两个分支的公共祖先
+2. 将两个分支提交所应用的修改合并，并生成一个新的提交
+
+![](.\images\git merge.png)
+
+git pull --rebase所执行的流程
+
+1. git fetch 拿下远程分支 origin/main
+2. git rebase origin/main 将本地main分支的提交变基到远程main分支
