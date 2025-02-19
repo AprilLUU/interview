@@ -104,7 +104,7 @@ git push --force
 1. 创建目录树哈希文件：保存暂存区所有文件的目录树结构对应哈希值，以便于查找
 2. 创建commit对象：保存目录树哈希，提交信息，以及上一次提交的指针
 
-![](.\images\Git原理.png)
+![](./images/Git原理.png)
 
 ### git分支和标签
 
@@ -119,7 +119,7 @@ git rebase将一个分支的所有提交变基到另一个分支的提交之后
 1. 找到两个分支的公共祖先
 2.  将该分支的提交依次应用于该祖先的提交之后
 
-![](.\images\git rebase.png)
+![](./images/git rebase.png)
 
 git rebase发生冲突，解决冲突之后使用git rebase --continue
 
@@ -136,7 +136,7 @@ git merge将两个分支的提交合并为一个新的提交
 1. 找到两个分支的公共祖先
 2. 将两个分支提交所应用的修改合并，并生成一个新的提交
 
-![](.\images\git merge.png)
+![](./images/git merge.png)
 
 git pull --rebase所执行的流程
 
