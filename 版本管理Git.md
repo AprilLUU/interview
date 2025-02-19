@@ -119,7 +119,7 @@ git rebase将一个分支的所有提交变基到另一个分支的提交之后
 1. 找到两个分支的公共祖先
 2.  将该分支的提交依次应用于该祖先的提交之后
 
-![](./images/git rebase.png)
+![](./images/git_rebase.png)
 
 git rebase发生冲突，解决冲突之后使用git rebase --continue
 
@@ -136,7 +136,7 @@ git merge将两个分支的提交合并为一个新的提交
 1. 找到两个分支的公共祖先
 2. 将两个分支提交所应用的修改合并，并生成一个新的提交
 
-![](./images/git merge.png)
+![](./images/git_merge.png)
 
 git pull --rebase所执行的流程
 
