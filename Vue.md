@@ -1,18 +1,18 @@
 ## Vue
 
-#### Diff算法
+### 1. Diff算法
 
 每次发生更新时，都会生成的新的VDOM Tree和旧的VDOM Tree进行Diff，这个过程会进行逐层Diff
 
 **每一层的Diff**
 
-**有动态内容的结点（不需要对比结点顺序）进行Block Diff**
+#### **1.1 有动态内容的结点（不需要对比结点顺序）进行Block Diff**
 
 在生成VDOM Tree时，Vue会标记需要动态更新的结点，也就是有动态值的结点进行Diff，而那些静态内容的结点不会发生更新
 
 **需要对比结点顺序**（v-for）
 
-**无Key的Diff**
+#### **1.2 无Key的Diff**
 
 1. 取新旧节点数组较小长度为公共长度
 2. 以公共长度为结尾进行循环，按序对比新旧节点
@@ -22,7 +22,7 @@
 
 
 
-**有key的Diff**
+#### **1.3 有key的Diff**
 
 1. 从头部开始Diff，判断key和type均相同的为可复用结点，进行patch
 2. 从尾部开始Difff，判断key和type均相同的为可复用结点，进行patch
@@ -42,11 +42,32 @@
 
 ​      5.1 生成新列表的key和index之间的Map **{ c:  1, b: 2,  e:3, d:4 }**
 
-​      5.2 生成新旧列表结点的顺序索引，通过key从Map查找新索引，计算其顺序索引，即**[3, 2, 5, 4]**，值越大代表结点在原序列中顺序靠前
+​      5.2 生成新旧列表结点的顺序索引，长度的新列表剩余Diff长度，即**4**
 
-​	  5.3 
+​		5.2.1 遍历旧列表，通过key从Map查找新索引
 
-#### 响应式原理
+​		5.2.2 计算其顺序索引，即**[3, 2, 5, 4]**，值越小代表结点在原序列中顺序靠前，如果值为**0**，代表这个结点在原列表中未找到，在这个过程中patch对应结点进行更新，尽可能地复用原结点
+
+```javascript
+    // newIndex - s2 获取旧节点在新列表中的索引
+    // i + 1描述旧结点的在新列表中的顺序索引 i为旧列表的遍历索引 i越小 代表原结点在旧列表中越靠前
+    // 当newIndexToOldIndexMap中的序列成递增子序列时说明序列已经正确 不必再进行更新
+    newIndexToOldIndexMap[newIndex - s2] = i + 1
+```
+
+​	  5.3 取顺序索引中的最长递增子序列，即**[1, 3]**（存的是索引)，对应顺序索引**[2, 4]**，结点**b -> d**，从尾部开始遍历，分为三种情况
+
+​		5.3.1 若值为0则挂载
+
+​		5.3.2 索引是最长递增子序列中的索引，跳过
+
+​		5.3.3 索引不是最长递增子序列中的索引，找到在最长递增子序列中的插入位置，使其仍保持递增，例如**5 -> index 2**，找到在**[2, 4] -> index[1, 3]**中的插入位置，即**[2, 4, 5]**让其仍保持递增
+
+​		5.3.4 遍历结束，整个序列成递增序列，即**[2, 3, 4, 5]**，此时顺序已经移动正确，将原来的结点都进行了复用并移动到相应位置，即 **c -> b -> e - > d**，Diff结束
+
+### 2. 响应式原理
+
+#### 2.1 reactive函数
 
 首先第一步需要拦截数据的getter，setter，**reactive**函数通过Proxy来进行拦截，通过**effect**传入依赖触发**getter**拦截，在**getter**拦截中需要收集依赖，触发**track**创建依赖对应的数据结构（三个Map），通过**trackEffect**收集依赖。
 
@@ -73,3 +94,84 @@
 7. **triggerEffect**会将依赖的调度器（调度器为传入的_effect.run方法）加入到调度队列，然后恢复调度，执行更新
 
 ![](./images/dep数据结构.png)
+
+#### 2.2 ref函数
+
+**ref**函数内部  => **new RefImpl(value)** => 包装进**ref.value**，如果是对象，调用**reactive**获得proxy对象
+
+**ref.value**收集依赖 => 触发 **RefImpl getter** => **ref.dep**存储对应的依赖，**Map（effect => _trackId）**=> 调用**trackEffect**收集依赖
+
+修改**ref.value**触发更新 => 触发 **RefImpl setter** => 调用**trackEffects**，取出**ref.dep**，把**effect**加入调度队列进行调度更新
+
+#### 2.3 computed函数
+
+**computed(getter)** => **new ComputedRefImpl**  **_value**缓存
+
+**computed**收集依赖，**effcet(fn2)** => **ComputedRefImpl getter value**，判断是否为脏值，为脏值，执行传递进来的**getter fn1**收集依赖，不为脏值，返回缓存**_value**  => 执行fn1，fn1内部依赖了a和b的value，进行**ref**收集依赖，将**effect1 fn1**和**trigger**（调度器为null）收集到对象的dep中，即 **a.dep = { effect1 => _ trackId }**，**b.dep = { effect1 => _ trackId }**  => 将fn2作为effect收集到**sum.dep**中，即**sum.dep = { fn2 => _ trackId }**，修改**sum.dirty = nodirty**，下次访问直接返回缓存**_value**，不执行**getter**
+
+**computed**触发更新 => 依赖发生改变，触发**a setter value** => 触发**ref**更新，取出**a.dep**触发**computed** **trigge**r进行更新，执行**triggerRefValue(sum)** => 触发**triggerEffects**，取出**sum.dep**进行调度更新，=> 获取**sum.dep.effect.dirty**时，触发**triggerComputed**，访问**sum.value** => 触发**sum getter** ，由于值发生改变，此时为脏值，重新执行**sum.effect.run** ，即执行**computed**传递进来的**getter**函数，获取新值 =>  触发执行**effect fn2**，完成更新
+
+```javascript
+const a = ref(1)
+const b = ref(2)
+const fn1 = () => a.value + b.value
+const sum = computed()
+const fn2 = () => console.log(sum.value)
+effect(fn2)
+a.value = 2
+```
+
+#### **2.4 watch函数**
+
+watch(source, cb, options) => dowatch(source, cb, options)
+
+1. 把source包装成一个getter函数，getter = () => source.value
+2. 创建调度器scheduler来调度cb，根据options.flush来确定调度时机
+3. 为getter创建一个effect，effect = new ReactiveEffect(getter, NOOP, scheduler)，把effect收集到source中
+4. 调用effect.run()获取旧值
+5. 当source发生改变时，执行调度器scheduler，实际是执行job函数，在内部调用了cb，并再次调用effect.run()获取新值，将旧值和新值一起传递给cb
+
+```javascript
+const num = ref(0)
+watch(num, () => console.log(num.value))
+num.value = 1
+```
+
+#### **2.5 watchEffect函数**
+
+watchEffect(effect, options) => dowatch(effect, null, options)
+
+1. 把effect包裹成getter，getter = () => effect()，由于effect为函数，getter会去执行effect函数
+2. 创建调度器scheduler来调度effect，根据options.flush来确定调度时机
+3. 为getter创建一个effectGetter，effectGetter = new ReactiveEffect(getter, NOOP, scheduler)，把effectGetter收集到source（effect内部的数据源）中
+4. 由于没有传cb参数，直接执行effectGetter.run()，相当于直接执行effect收集依赖
+5. source发生改变时，执行执行调度器scheduler，实际是执行job函数，在内部重新调用了effectGetter.run()，相当于重新执行effect函数
+
+### 3. 模板编译
+
+1. 模板经过词法分析和语法分析得到AST，词法分析遍历每一个字符并进行标记（关键词，操作符，标识符等）类型，语法分析根据语法规则对词法分析得到的字符流建立AST
+
+2. 遍历AST，为每个节点应用转换，得到新的AST
+
+3. 根据新的AST，生成render函数，模板编译过程会进行静态提升，标记静态内容不进行更新，为后续render函数，Diff过程进行优化
+
+![](./images/模板编译流程.png)
+
+### 4. 调度系统
+
+分为两个队列来进行调度，达到三个队列的效果
+
+第一个队列通过queueJob(job)来加入任务，job会进行去重，job可以有id和pre属性
+
+1. 没有id，直接加入队列尾部
+2. 有id，根据id进行二分查找加入队列
+
+第二个队列通过queuePostFlushCb(job)来加入任务，也是根据id进行排序
+
+所有队列的任务都是通过Promise.then加入微任务队列
+
+1. 执行queueFlush(flushJobs)，即Promise.then(flushJobs)
+2. flushJobs函数会对队列进行排序，排完序依次执行任务（可以通过flushPreFlushCbs来优先取出所有pre属性的任务先执行）
+3. 最终再执行flushPostFlushCbs()清空Post队列
+
+![](./images/调度队列.png)
