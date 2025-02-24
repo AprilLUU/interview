@@ -174,4 +174,37 @@ watchEffect(effect, options) => dowatch(effect, null, options)
 2. flushJobs函数会对队列进行排序，排完序依次执行任务（可以通过flushPreFlushCbs来优先取出所有pre属性的任务先执行）
 3. 最终再执行flushPostFlushCbs()清空Post队列
 
+**watch**和**watchEffect**中的执行时机，**options.flush**
+
+1. sync，scheduler = job，在effect触发调度scheduler同步执行
+2. pre，scheduler = queueJob(job)，在effect触发调度scheduler时将任务加入队列，同时给job加上id和pre属性，因此优先于UI update
+3. post，scheduler = queuePostFlushCb(job)，在effect触发调度scheduler时将任务加入Post队列，UI update之后执行
+
+**Component update**：effect.sheduler = queueJob(update)，调度时机在微任务队列中，因此UI update是异步的
+
+**nexttick：**nexttick(cb)，将cb放入promise.then(queueFlush(flushJobs)).then(cb)中，因此可以在刷新队列任务之后，重新加入微任务队列，达到在UI update之后重新执行
+
 ![](./images/调度队列.png)
+
+#### 5. KeepAlive
+
+KeepAlive对应也是一个组件，在处理KeepAlive组件时
+
+1. 执行KeepAlive的setup函数，返回一个render函数，render函数会去获取slot.defalut()，获取插槽内容，也就是缓存的子组件
+2. 处理setup返回的结果，执行对应的render函数，将子组件编译为实际的render函数
+
+缓存原理：用Map缓存，{key -> vnode}，key为组件的key，vnode为虚拟节点
+
+max原理：内部维护一个Set来存储缓存的key，当缓存key大于max时，采用LRU（最近最少使用）算法（set.next().value）移除key
+
+include，exclude：判断是否要缓存，根据组件的name来进行匹配，include则缓存，exclude不缓存
+
+切换原理：内部创建一个storageContainer（对应一个div容器），当切换时将旧组件移到storageContainer，新组件移到实际的container
+
+![](./images/KeepAlive.png)
+
+#### 6. 生命周期
+
+**createComponentInstance** -> **setupComponent** -> **setupStatefulComponent**（执行setup函数）-> **handleSetupResult** -> **applyOptions**（处理选项式API，内部调用**beforeCreate**和**created**）-> **setupRenderEffect**（判断是挂载还是更新，挂载执行**beforeMount**和**mdounted**并在两个钩子之间编译模板，赋值给组件的**render**函数，更新执行**beforeUpdate**和**updated**）
+
+![](./images/生命周期.png)

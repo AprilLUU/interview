@@ -1,22 +1,22 @@
 # 版本管理Git
 
-### 文件区域划分
+### 1. 文件区域划分
 
-#### 工作区 
+#### 1.1 工作区 
 
-#### 暂存区
+#### 1.2 暂存区
 
 ```shell
  git add
 ```
 
-#### 本地版本仓库
+#### 1.3 本地版本仓库
 
 ```shell
  git commit -m
 ```
 
-#### 远程版本仓库
+#### 1.4 远程版本仓库
 
 建立本地和远程的连接
 
@@ -60,11 +60,11 @@ current：推送到远程名称匹配的分支，如果分支不存在则创建
 git config push.default simple
 ```
 
-### 忽略文件 .gitignore
+### 2. 忽略文件 .gitignore
 
 https://github.com/github/gitignore
 
-### git修改历史提交信息
+### 3. git修改历史提交信息
 
 1. 指定修改第几次提交，会重新生成提交hash值和提交时间，即重新提交
 
@@ -91,28 +91,28 @@ git rebase --continue
 git push --force
 ```
 
-### git原理
+### 4. git原理
 
 文件组织结构：哈希前两位为目录名，后面值为文件名
 
-#### git add 原理
+#### 4.1 git add 原理
 
 为每个文件创建文件哈希并保存
 
-#### git commit原理
+#### 4.2 git commit原理
 
 1. 创建目录树哈希文件：保存暂存区所有文件的目录树结构对应哈希值，以便于查找
 2. 创建commit对象：保存目录树哈希，提交信息，以及上一次提交的指针
 
 ![](./images/Git原理.png)
 
-### git分支和标签
+### 5. git分支和标签
 
 git分支和标签以及HEAD本质都是指针，指向某次的提交对象
 
 改变分支即改变HEAD指针指向
 
-### git rebase和git merge
+### 6. git rebase和git merge
 
 git rebase将一个分支的所有提交变基到另一个分支的提交之后
 
@@ -142,3 +142,19 @@ git pull --rebase所执行的流程
 
 1. git fetch 拿下远程分支 origin/main
 2. git rebase origin/main 将本地main分支的提交变基到远程main分支
+
+### Git Flow
+
+1. **master**作为主分支
+2. **develop**作为开发分支，当有稳定版本时合并到master
+3. **topic**作为专门开发某一个功能或者特性的分支，完成后合并到develop分支
+
+![](C:\Users\ryli\Desktop\interview\images\Git Flow1.png)
+
+1. **master**作为主分支，迭代的所有版本合并到master之后打上标签
+2. **hotfix**分支，某一版本出现bug时，创建hotfix分支修复，同时合并到master和develop分支
+3. **develop**作为开发分支，当有稳定版本时合并到release分支
+4. **feature**作为专门开发某一个功能或者特性的分支，完成后合并到develop分支
+5. **release**确定好代码发布的版本之后，同时合并到master和develop分支
+
+![](C:\Users\ryli\Desktop\interview\images\Git Flow2.png)
