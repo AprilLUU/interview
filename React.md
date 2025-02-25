@@ -69,3 +69,23 @@ render() {
 }
 ```
 
+#### 3. 组件通信
+
+父传子：props 
+
+子传父：props传递回调函数，Vue中还可以通过自定义事件，子组件定义事件，父组件监听事件，跟事件总线一样
+
+非父子：事件总线，全局状态管理， Vue中provide和inject，React中Context类似Vue中project和inject，为子组件注入数据，<Provider>组件包裹根组件，根组件内部所有子孙组件都可以通过<Consumer>组件来获取数据
+
+#### 4. React插槽实现
+
+1. props传递JSX
+2. props.children，将JSX作为children传递给子组件
+3. 作用域插槽，传递一个函数作为props，由子组件将内部数据传递过来
+
+Vue中插槽实际上为一个函数，执行这个函数返回vnode，将vnode插入对应位置，作用域插槽实际就是在传递函数时传递对应的参数，与React中类似
+
+#### 5. setState同步和异步的问题
+
+setState默认是异步的，可以对DOM进行批量更新，如果是同步的，则每次都会调用render函数重新更新DOM，消耗性能，与Vue中更新DOM的机制类似，Vue通过queueJob(component.update)，将组件的更新加入到调度队列中，通过Promise.then加入微任务队列，同时将任务进行去重，只异步更新一次。
+
