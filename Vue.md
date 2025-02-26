@@ -199,7 +199,7 @@ max原理：内部维护一个Set来存储缓存的key，当缓存key大于max�
 
 include，exclude：判断是否要缓存，根据组件的name来进行匹配，include则缓存，exclude不缓存
 
-切换原理：内部创建一个storageContainer（对应一个div容器），当切换时将旧组件移到storageContainer，新组件移到实际的container
+切换原理：内部创建一个storageContainer（对应一个div容器），当切换时将旧组件移到storageContainer，新组件移到实际的container，组件激活时会重新patch组件进行更新
 
 ![](./images/KeepAlive.png)
 
