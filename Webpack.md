@@ -62,15 +62,11 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 #### 5. 常见插件
 
 - **CleanWebpackPlugin**每次打包清除之前的打包结果
-
 - **HtmlWebpackPlugin**创建一个index.html，可以自定义EJS模板
-
 - **DefinePlugin**配置编译全局常量
-
 - **MiniCssExtractPlugin**将CSS代码提取成单独的文件
-
+- **CSSMinimizerPlugin**压缩CSS代码
 - **TerserPlugin**压缩代码
-
 - **BundleAnalyzerPlugin**可视化分析代码打包体积
 
 #### 6. 开发服务器devServer
@@ -98,3 +94,6 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 - vite开发构建使用esbuild，打包使用rollup
 - vite使用http缓存来优化加载速度，依赖的源码文件（不会经常发生更改）采用强缓存，项目的源码文件采用协商缓存
 - webpack基于内存打包，将整个项目打包后存储在内存，随着项目的增长，启动速度很慢，但webpack生态较好，支持很多优化插件
+
+## Loader和Plugin的区别
+

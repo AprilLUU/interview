@@ -22,7 +22,7 @@
 
 
 
-#### **1.3 有key的Diff**
+#### **1.3 有key的Diff**，key要保证唯一性，不要使用索引
 
 1. 从头部开始Diff，判断key和type均相同的为可复用结点，进行patch
 2. 从尾部开始Difff，判断key和type均相同的为可复用结点，进行patch
