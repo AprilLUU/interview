@@ -95,5 +95,20 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 - vite使用http缓存来优化加载速度，依赖的源码文件（不会经常发生更改）采用强缓存，项目的源码文件采用协商缓存
 - webpack基于内存打包，将整个项目打包后存储在内存，随着项目的增长，启动速度很慢，但webpack生态较好，支持很多优化插件
 
+## Webpack打包流程
+
++ 初始化阶段
+  - 读取与合并配置
+  - 实例化Compiler对象，加载配置的所有插件
+  - 执行compiler.run()开始编译
++ 编译阶段
+  - 根据配置中的entry找到所有入口文件
+  - 分析模块依赖，调用Loader对模块进行转换
+  - 递归构建依赖图谱
++ 输出阶段
+  - 把编译后的代码组合成Chunk，转换成文件输出到文件系统
 ## Loader和Plugin的区别
 
+Loader是Webpack用来处理对应模块文件的工具，例如css-loader用以处理css文件，babel-loader用以处理技js文件进行代码转换等。本质是一个函数，用以处理文件结果，链式调用。
+
+Plugin是用以扩展Webpack功能的工具，Plugin可以在Webpack的整个流程中扩展对应的功能，例如htmlWebpackPlugin用以生成一个html文件，TerserPlugin用以压缩代码，CleanWebpackPlugin用以在输出内容之前清理输出目录中的内容。本质是监听对应的事件，在对应的事件触发时执行回调。

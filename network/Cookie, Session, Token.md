@@ -53,4 +53,4 @@ token是通过特定算法对用户信息进行签名之后的字符串凭证，
 4. 第三方应用携带授权码和开放平台置换access token
 5. 第三方应用返回access token给客户端，客户端授权成功
 
-![](./images/OAuth.png)
+![](../images/OAuth.png)

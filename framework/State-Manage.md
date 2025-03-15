@@ -277,3 +277,30 @@ export const appShallowequal = shallowEqual
 export default store
 ```
 
+#### 2. pinia
+
+pinia作为Vue的一个插件来使用，核心依赖于Vue的响应式系统进行工作。
+
+- store通过reactive进行创建
+
+- store中的state调用ref和reactive进行依赖追踪
+- store中的getters依赖computed进行工作
+- store中的actions会集成中store对象中，作为修改state的函数
+
+createPinia => 创建pinia对象
+
+- 核心属性state，存储所有store合并之后的state
+- _s，一个Map对象，存储store，storeId => store，缓存store，多次调用useStore返回同一个
+- _p，创建plugin
+
+defineStore => return useStore
+
+useStore => createSetupStore
+
+- 拿到setup函数的返回值setupStore，遍历setupStore
+  - 把ref和reactive对象添加到pinia.state中，收集到pinia.state
+  - actions添加到store对象上
+  - getters不处理，依赖computed
+- 把setupStore合并到store对象上，store是一个响应式对象
+
+useStore => createOptionsStore，options包裹进setup函数 => createSetupStore 
