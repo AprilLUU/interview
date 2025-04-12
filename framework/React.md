@@ -117,7 +117,7 @@ setState默认是异步的，可以对DOM进行批量更新，如果是同步的
 - useState(initValue)，每次调用函数为什么useState返回值state不会变为初始值？React内部做了缓存
 - useEffect，在DOM更新之后执行副作用函数，与之对应由useLayoutEffect，在重绘之前触发
 
-1. 每次更新时都会重新执行effect，可以传递第二个参数让useEffect在指定state发生变化重新执行，传[]代表只在卸载时执行一次
+1. 每次更新时都会重新执行effect，可以传递第二个参数让useEffect在指定state发生变化重新执行，传[]代表只在组件添加到DOM时执行一次
 2. 多个effect声明，会按声明顺序依次执行（队列？）
 3. 返回值为清除effect的函数，由React在更新或卸载组件时执行，传[]代表只在卸载时执行一次
 

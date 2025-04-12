@@ -71,7 +71,7 @@ BFC的高度是auto的情况下，是如下方法计算高度的
 
 - 如果有浮动元素，那么会增加高度以包括这些浮动元素的下边缘
 
-BFC，块级格式化上下文，是一个独立的渲染区域，内部的子元素不会影响外面的元素，同样也不会被外部的元素影响。比如，BFC的渲染规则包括两个相邻的盒子会重叠外边距，两个元素位于同一个BFC就会发生外边距折叠的问题。而常见的解决方案就是开启一个新的BFC，让两个元素处于不同的BFC来解决。
+BFC，块级格式化上下文，是一个独立的渲染区域，内部的子元素不会影响外面的元素，同样也不会被外部的元素影响。比如，在同一个BFC垂直相邻的盒子会重叠外边距。而常见的解决方案就是开启一个新的BFC，让两个元素处于不同的BFC来解决。子元素的外边距会传递给父元素，给父元素开启BFC，让子元素处于父元素的BFC，父元素处于HTML的BFC。
 
 ```css
 .container {
@@ -182,6 +182,8 @@ window.addEventListener("resize", setRemUnit)
 ```
 
 - 使用相对单位vw和vh，根据设备的宽度和高度来动态计算（优先）
+  - vmin，vmax取视口中宽度和高度最大或最小的一个
+
 
 优势：不用修改html的fontSize，防止混乱，也不用给body设置fontSize防止继承
 
@@ -190,7 +192,6 @@ window.addEventListener("resize", setRemUnit)
 动态获取设备宽高，计算缩放比例，直接对body应用transform进行缩放
 
 ```javascript
-
 // 设计稿:  1920 * 1080
 // 目标适配:  1920 * 1080   3840 * 2160 ( 2 * 2 ) ;  7680 * 2160( 4 * 2)
 
@@ -218,3 +219,45 @@ if (currentRatio > targetRatio) {
 }
 ```
 
+#### 10. flex: 1和flex: auto的区别
+
+- flex：1，实际是flex-shrink：1，flex-growth：1，flex-basic：0%的简写，用以弹性分配剩余空间，忽略元素内容大小
+  - flex：number等价于flex-grow：number（元素对剩余空间的分配比例），flex-shrink：1（默认值），flex-basic：0%
+- flex：auto，实际是flex-shrink：1，flex-growth：1，flex-basic：auto的简写，与flex为1的区别是会优先满足元素内容大小（如果有width，会影响flex-basic的值），再考虑弹性分配
+- flex-basic：默认值auto
+
+#### 11. flex布局
+
+- 父元素
+  - justify-content：space-between，center，space-around
+  - aligin-items
+  - flex-wrap
+  - flex-direction
+- 子元素
+  - flex-growth
+  - flex-shrink
+  - algin-self
+  - order
+
+#### 12. opacity和visibility的区别
+
+- 两者都会使元素不可见，且不可交互，但仍然占据位置
+- opactiy可以做到渐变显示的动画，visibility直接隐藏
+
+- opacity会影响子元素的透明度
+- visibility不会影响子元素
+
+#### 13. 垂直居中方案
+
+- 高度不确定的情况下
+
+  - flex：justify-content: center；aligin-items: center
+
+  - flex：margin: auto;
+
+  - position: absolute; top: 50%; transform: translate(-50%); margin: 0 auto;
+  - position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0 auto;
+
+- 高度确定的情况下
+
+  - 计算具体数值即可

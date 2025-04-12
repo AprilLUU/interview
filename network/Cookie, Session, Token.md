@@ -10,7 +10,7 @@ cookie是存储在客户端的一个小型文件，以键值对的方式存储�
 
 - **path：** 设置在该站点下哪些页面可以访问cookie，通常是/，允许所有页面访问
 
-- **domain：**设置哪些域可以访问cookie，例如设置为site.com，表示允许sitm.com及其子域（eg：xxx.sitem.com）访问
+- **domain：**设置哪些域可以访问cookie，例如设置为site.com，表示允许site.com及其子域（eg：xxx.sitem.com）访问
 - **expires，max-age：**设置过期时间
 - **secure：**设置仅https可以携带
 - **samesite：**lax或者strict，lax允许跨站的GET请求以及通过浏览器顶部URL跳转的方式携带cookie，strict仅允许源站下的请求携带cookie
@@ -18,7 +18,7 @@ cookie是存储在客户端的一个小型文件，以键值对的方式存储�
 
 缺点：
 
-- 明文传输不安全，
+- 明文传输不安全
 
 - 每次请求都会携带，消耗流量 
 
@@ -40,7 +40,7 @@ token是通过特定算法对用户信息进行签名之后的字符串凭证，
 
 - header——令牌元数据，类型以及签名算法等
 - payload——传递的用户信息，不加密，存放敏感信息时需要进行加密
-- signature——对header和payload采用特定算法进行签名
+- signature——对header和payload采用特定算法进行签名，私钥签发token，公钥验证token
 - 将header，payload，signature合在一起进行base64编码，通过.分离三部分，得到最后的token
 
 ##### 3.2 OAuth Token

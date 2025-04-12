@@ -304,3 +304,10 @@ useStore => createSetupStore
 - 把setupStore合并到store对象上，store是一个响应式对象
 
 useStore => createOptionsStore，options包裹进setup函数 => createSetupStore 
+
+store其实就是一个单例对象，第一次时会创建并缓存在pinia对象上，所有组件访问的都是同一个store对象，达到状态共享。
+
+#### 3. pinia和vuex和区别
+
+- 移除mutation这个冗余环节
+- 更好的TS支持，获得更好的开发体验

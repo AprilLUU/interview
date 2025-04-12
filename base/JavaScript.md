@@ -179,7 +179,7 @@ gen.next().value.then(res1 => {
 
 4. async, await
 
-async, await其实就是生成器和Promise的结合，以同步的代码来编写异步代码，更加优雅
+async, await其实就是生成器和Promise的结合，用生成器来控制函数的执行，等待Promise异步操作有了结果之后再去调用next，同时将结果传入，以同步的代码来编写异步代码，更加优雅
 
 #### 10. 可迭代协议，迭代器协议
 

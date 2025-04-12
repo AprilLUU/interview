@@ -78,6 +78,11 @@ function createObject(constructor, ...args) {
 
 #### 5. 防抖
 
+- 先写出简单版本
+- 优化返回值
+- 封装首次执行功能
+- 封装取消功能
+
 ```javascript
 function debounce(fn, delay, immediate = false) {
   let timer = null
@@ -123,21 +128,16 @@ function debounce(fn, delay, immediate = false) {
 
 #### 6. 节流
 
+- 先写出简单版本
+- 优化返回值
+- 封装首次执行
+- 封装取消功能
+
 ```javascript
 function throttle(fn, interval, optinons = { leading: true, trailing: false }) {
   let lastTime = 0
   let timer = null
   const { leading, trailing } = optinons
-
-  const execFunWithError = function(fun, thisArg, args, resolve, reject) {
-    try {
-      const result = fun.apply(thisArg, args)
-      console.log("throttle")
-      resolve(result)
-    } catch(err) {
-      reject(err)
-    }
-  }
 
   const _throttle = function(...args) {
     return new Promise((resolve, reject) => {
@@ -150,14 +150,16 @@ function throttle(fn, interval, optinons = { leading: true, trailing: false }) {
           clearTimeout(timer)
           timer = null
         }
-        execFunWithError(fn, this, args, resolve, reject)
+        const result = fn.apply(this, args)
+        reslove(result)
         lastTime = nowTime
         return
       }
   
       if (trailing && !timer) {
         timer = setTimeout(() => {
-          execFunWithError(fn, this, args, resolve, reject)
+          const result = fn.apply(this, args)
+          reslove(result)
           lastTime = !leading ? 0 : new Date().getTime()
           timer = null
         }, remainTime)
@@ -228,8 +230,6 @@ function deepClone(originValue, map = new WeakMap()) {
 ```javascript
 
 export class EventBus {
-  eventBus
-
   constructor() {
     this.eventBus = {}
   }
@@ -294,14 +294,12 @@ export class EventBus {
 export class EventStore {
   state: IStateType
   actions: IActionType
-  eventBusV1: EventBus
-  eventBusV2: EventBus
+  eventBus: EventBus
 
   constructor(options: IStoreOptions) { 
     this.state = this._observer(options.state ?? {})
     this.actions = options.actions ?? {}
-    this.eventBusV1 = new EventBus()
-    this.eventBusV2 = new EventBus()
+    this.eventBus = new EventBus()
   }
 
   _observer(state: IStateType) {
@@ -312,11 +310,8 @@ export class EventStore {
       },
       set(target, key, newValue, recevier) {
         Reflect.set(target, key, newValue, recevier)
-        if (this.eventBusV1.eventBus[key]) {
-          this.eventBusV1.emit(key, newValue)
-        }
-        if (this.eventBusV2.eventBus[key]) {
-          this.eventBusV2.emit(key, { [key]: newValue })
+        if (this.eventBus.eventBus[key]) {
+          this.eventBus.emit(key, newValue)
         }
         return true
       }
@@ -332,45 +327,6 @@ export class EventStore {
     this.eventBusV1.on(stateKey, stateCallback)
     const value = this.state[stateKey]
     stateCallback.apply(this.state, [value])
-  }
-
-  onStates(stateKeys: string[], stateCallback: stateCallback) {
-    const keys = Object.keys(this.state)
-    const value = {}
-
-    stateKeys.forEach((stateKey) => {
-      if (keys.indexOf(stateKey) === -1) {
-        throw new Error("the state does not contain your key")
-      }
-      this.eventBusV2.on(stateKey, stateCallback)
-      value[stateKey] = this.state[stateKey]
-    })
-
-    stateCallback.apply(this.state, [value])
-  }
-
-  offState(stateKey: string, stateCallback: stateCallback) {
-    const keys = Object.keys(this.state)
-    if (keys.indexOf(stateKey) === -1) {
-      throw new Error("the state does not contain your key")
-    }
-    this.eventBusV1.off(stateKey, stateCallback)
-  }
-
-  offStates(stateKeys: string[], stateCallback: stateCallback) {
-    const keys = Object.keys(this.state)
-
-    stateKeys.forEach((stateKey) => {
-      if (keys.indexOf(stateKey) === -1) {
-        throw new Error("the state does not contain your key")
-      }
-
-      this.eventBusV2.off(stateKey, stateCallback)
-    })
-  }
-
-  setState(stateKey: string, value: any) {
-    this.state[stateKey] = value
   }
 
   dispatch(actionName: string, ...payload: any[]) {
@@ -402,10 +358,6 @@ class MyPromise {
     return new MyPromise((resolve, reject) => {
       const values = []
       promises.forEach((promise, index) => {
-        if (!(promise instanceof MyPromise)) {
-          //微任务
-          promise = MyPromise.resolve(promise)
-        }
         promise.then(res => {
           // 调用splice，保证每个promise中的结果在数组中的顺序
           values.splice(index, 0, res)
@@ -423,9 +375,6 @@ class MyPromise {
     return new MyPromise(resolve => {
       const results = []
       promises.forEach((promise, index) => {
-        if (!(promise instanceof MyPromise)) {
-          promise = MyPromise.resolve(promise)
-        }
         promise.then(res => {
           const promiseRes = { status: 'fulfilled', value: res }
           results.splice(index, 0, promiseRes)
@@ -446,9 +395,6 @@ class MyPromise {
   static race(promises) {
     return new MyPromise((resolve, reject) => {
       promises.forEach(promise => {
-        if (!(promise instanceof MyPromise)) {
-          promise = MyPromise.resolve(promise)
-        }
         promise.then(resolve, reject)
       })
     })
@@ -457,14 +403,10 @@ class MyPromise {
   static any(promises) {
     const reasons = []
     return new MyPromise((resolve, reject) => {
-      if (!(promise instanceof MyPromise)) {
-        promise = MyPromise.resolve(promise)
-      }
       promises.forEach(promise => {
         promise.then(resolve, err => {
           reasons.push(err)
           if (reasons.length === promises.length) {
-            // reject(new AggregateError(reasons))
             reject(new AggregateError('all promises were rejected'))
           }
         })

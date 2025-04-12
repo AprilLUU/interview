@@ -67,6 +67,7 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 - **MiniCssExtractPlugin**将CSS代码提取成单独的文件
 - **CSSMinimizerPlugin**压缩CSS代码
 - **TerserPlugin**压缩代码
+- **PurgeCSSPlugin**对CSS代码进行Tree Shaking
 - **BundleAnalyzerPlugin**可视化分析代码打包体积
 
 #### 6. 开发服务器devServer
@@ -87,6 +88,24 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 
 最佳实践：开发测试阶段使用source-map，生产环境不使用，减少代码传输体积
 
+#### 8. 打包后的公共资源（部署）路径
+
+- webpack
+
+```javascript
+output: {
+	// 默认是/ 从项目的根目录下加载
+	publicPath: cdn_url || / || /my_app
+}
+```
+
+- vite
+
+```javascript
+// 会影响import.meta.env.BASE_URL
+base: /
+```
+
 ## vite和webpack的区别
 
 - vite基于原生ESM，由浏览器来加载模块
@@ -99,16 +118,120 @@ vue模板依赖vue的编译器解析生成js代码，之后通过vue-loader加�
 
 + 初始化阶段
   - 读取与合并配置
-  - 实例化Compiler对象，加载配置的所有插件
+  - 实例化Compiler对象，遍历并调用插件的apply方法（接收compiler对象）注册插件，实际就是监听webpack构建过程中的事件
   - 执行compiler.run()开始编译
+
+```javascript
+const webpack = require("../lib/webpack");
+const config = require("./webpack.config");
+
+// 1.创建一个对象: compiler
+// 另外一个非常重要的对象: compilation
+const compiler = webpack(config);
+
+// 2.执行run方法, 开始对代码进行编译和打包
+compiler.run((err, stats) => {
+	if (err) {
+		console.error(err);
+	} else {
+		console.log(stats);
+	}
+});
+```
+
 + 编译阶段
   - 根据配置中的entry找到所有入口文件
   - 分析模块依赖，调用Loader对模块进行转换
   - 递归构建依赖图谱
-+ 输出阶段
++ 生成阶段
   - 把编译后的代码组合成Chunk，转换成文件输出到文件系统
+
+## 核心概念
+
+- **compiler**是编译器对象，webpack启动一直存在
+- **compilation**时一次编译的结果，文件更改触发重新编译之后会生成新的compilation对象，compiler对象不会更改，一直存在
+- **module**对应一个资源模块，即一个文件
+- **chunk**对应打包之后的代码块，即根据module之间的依赖关系生成的代码
+- **bundle**对应最后的打包结果，对chunk经过一系列处理之后的文件
+
 ## Loader和Plugin的区别
 
-Loader是Webpack用来处理对应模块文件的工具，例如css-loader用以处理css文件，babel-loader用以处理技js文件进行代码转换等。本质是一个函数，用以处理文件结果，链式调用。
+Loader是Webpack用来处理对应模块文件的工具，例如css-loader用以处理css文件，babel-loader用以处理技js文件进行代码转换等。本质是一个函数，接收编译结果，进一步处理文件结果并返回，链式调用。
 
-Plugin是用以扩展Webpack功能的工具，Plugin可以在Webpack的整个流程中扩展对应的功能，例如htmlWebpackPlugin用以生成一个html文件，TerserPlugin用以压缩代码，CleanWebpackPlugin用以在输出内容之前清理输出目录中的内容。本质是监听对应的事件，在对应的事件触发时执行回调。
+```javascript
+const babel = require('@babel/core')
+
+module.exports = function(content) {
+  // 1.使用异步loader
+  const callback = this.async()
+
+  // 2.获取options
+  let options = this.getOptions()
+  if (!Object.keys(options).length) {
+    options = require('../babel.config')
+  }
+
+  // 使用Babel转换代码
+  babel.transform(content, options, (err, result) => {
+    if (err) {
+      callback(err)
+    } else {
+      callback(null, result.code)
+    }
+  })
+
+  // return content
+}
+```
+
+Plugin是用以扩展Webpack功能的工具，Plugin可以在Webpack的整个流程中扩展对应的功能。本质是一个函数或者类，需要在原型上有apply方法，监听对应的事件，在对应的事件触发时执行回调。
+
+- plugin的执行顺序默认为注册的顺序，也就是我们传入的数组顺序，如果插件内部有stage（数值越小，执行越早）或者before，after选项（控制插件的先后执行顺序），会根据stage和before，after进行排序
+- 调用tap实际上就是把回调注册到对应队列上，并根据stage或者和before，after进行排序，来确保插件的先后执行顺序
+
+- 在compiler对象的钩子上注册事件
+- 接收compilation对象操作内部实例数据
+- 回调callback
+
+```javascript
+apply(compiler) {
+    // console.log("AutoUploadWebpackPlugin被注册:")
+    // 注册hooks监听事件
+    // 等到assets已经输出到output目录上时, 完成自动上传的功能
+    compiler.hooks.afterEmit.tapAsync("AutoPlugin", async (compilation, callback) => {
+      // 1.获取输出文件夹路径(其中资源)
+      const outputPath = compilation.outputOptions.path
+
+      // 2.连接远程服务器 SSH
+      await this.connectServer()
+
+      // 3.删除原有的文件夹中内容
+      const remotePath = this.options.remotePath
+      this.ssh.execCommand(`rm -rf ${remotePath}/*`)
+
+      // 4.将文件夹中资源上传到服务器中
+      await this.uploadFiles(outputPath, remotePath)
+
+      // 5.关闭ssh连接
+      this.ssh.dispose()
+
+      // 完成所有的操作后, 调用callback()
+      callback()
+    })
+}
+```
+
+![](../images/webpack钩子.png)
+
+## HMR原理
+
+- dev-server建立和浏览器的websocket连接
+- 当文件发生变化时触发重新更新，生成新的编译结果和文件哈希值
+- dev-server推送消息给浏览器
+- 浏览器对比新旧文件哈希，发现不一致，重新请求新的资源
+- vite的HMR原理是利用协商缓存
+
+## Tree Shaking原理
+
+- 利用ESM的静态分析特性，编译时就确定模块的依赖关系，识别出哪些代码是未使用的
+- 构建过程中，标记未使用的代码，在最终打包时结合Terser进行压缩和优化

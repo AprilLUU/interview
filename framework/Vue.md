@@ -207,6 +207,6 @@ include，exclude：判断是否要缓存，根据组件的name来进行匹配�
 
 #### 6. 生命周期
 
-**createComponentInstance** -> **setupComponent** -> **setupStatefulComponent**（执行setup函数）-> **handleSetupResult** -> **applyOptions**（处理选项式API，内部调用**beforeCreate**和**created**）-> **setupRenderEffect**（判断是挂载还是更新，挂载执行**beforeMount**和**mdounted**并在两个钩子之间编译模板，赋值给组件的**render**函数，更新执行**beforeUpdate**和**updated**）
+**createComponentInstance** -> **setupComponent** -> **setupStatefulComponent**（执行setup函数）-> **handleSetupResult** -> **applyOptions**（处理选项式API，内部调用**beforeCreate**和**created**）-> **setupRenderEffect**（判断是挂载还是更新，挂载执行**beforeMount**和**mounted**并在两个钩子之间编译模板，赋值给组件的**render**函数，更新执行**beforeUpdate**和**updated**）
 
 ![](../images/生命周期.png)

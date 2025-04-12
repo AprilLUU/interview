@@ -73,8 +73,35 @@ global，与浏览器window对象类似
 
 #### 10. express和koa的区别
 
-- 中间件机制：Koa支持async和await处理异步中间件，能更优雅地处理异步流程
-- 核心设计：Koa更轻量，Express内置许多中间件和功能
+- 中间件机制
+  - Koa采用洋葱模型的中间件机制
+    - 中间件的执行顺序为从外到内，再从内到外
+    - 涉及到异步操作使用async和await等待下一个中间件执行
+  - Express的中间件的执行顺序为顺序执行，按照注册顺序线性执行
+    - 不支持async和await等待异步中间件执行
+  - 执行同步代码时，express和koa没有太大的区别，区别主要在于异步代码
+
+
+```typescript
+// Koa异步
+app.use(async (ctx, next) => {
+  console.log('Middleware 1 - Before');
+  await next();
+  console.log('Middleware 1 - After'); // 只有 next() 执行完，才执行这里
+})
+```
+
+```javascript
+// express异步
+app.use(async (req, res, next) => {
+  console.log('Async Middleware - Before');
+  await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟异步任务
+  console.log('Async Middleware - After');
+  next();
+})
+```
+
+- 核心设计：Koa更轻量，可以由开发者自己决定使用哪些中间件，Express内置许多中间件和功能
 - 错误处理：Express通过next(err)将错误传递到后续中间件处理，Koa可使用try，catch直接捕获错误，也可以将触发error事件emit(error)，通过on("error")监听error事件统一处理错误
 - 上下文：express请求和响应对象分离req和res，koa统一请求和响应对象到ctx
 
