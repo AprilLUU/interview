@@ -149,7 +149,7 @@ git pull --rebase所执行的流程
 2. **develop**作为开发分支，当有稳定版本时合并到master
 3. **topic**作为专门开发某一个功能或者特性的分支，完成后合并到develop分支
 
-![](../images/Git Flow1.png)
+![](../images/Git_Flow1.png)
 
 1. **master**作为主分支，迭代的所有版本合并到master之后打上标签
 2. **hotfix**分支，某一版本出现bug时，创建hotfix分支修复，同时合并到master和develop分支
@@ -157,4 +157,4 @@ git pull --rebase所执行的流程
 4. **feature**作为专门开发某一个功能或者特性的分支，完成后合并到develop分支
 5. **release**确定好代码发布的版本之后，同时合并到master和develop分支
 
-![](../images/Git Flow2.png)
+![](../images/Git_Flow2.png)
