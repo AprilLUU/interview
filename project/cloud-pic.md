@@ -408,69 +408,6 @@ return 1 - distance / Math.sqrt(3 * Math.pow(255, 2));
   - 为了不破坏单向数据流的原则，将表单双向绑定的语法糖进行拆分
     - 直接双向绑定，当表单值改变，会直接修改prop的值
   - v-model拆分为v-bind，当表单值改变时触发change事件，把对应的字段和表单值通过emit触发事件暴露给父组件，由父组件完成修改
-- 联动修改
-  - 增加依赖的字段，对应一个数组
-  - 增加一个onChange函数，传入改变的字段和值，返回需要改变的新值
-  - 在依赖的字段发生改变时，遍历配置，找到依赖该字段的表单项，回调onChange函数
-
-
-```typescript
-// 依赖字段
-dependencies?: string[]
-// 处理联动
-onChange?: (field: any, value: any) => any
-
-const handleValueChange = (value: string, field: string) => {
-  props.formList.forEach(((item) => {
-    if (item.dependencies) {
-      if (item.dependencies.includes(field)) {
-        const effectVal = item.onChange?.(field, value)
-        emit("update:formData", item.field, effectVal)
-      }
-    }
-  }))
-  emit("update:formData", field, value)
-}
-```
-
-- 表单校验
-  - 二次封装，默认组件库已支持的功能也可以支持
-  - 最简单的方法且最灵活的方式，增加一个校验函数validator，把表单项的值传入进行自定义校验
-  - 增加校验规则字段rules，描述校验的规则，根据校验的规则对表单项进行校验
-  - 暴露valid方法，验证表单是否校验成功
-
-```typescript
-validator: (value: any) => boolean
-rules: any[]
-
-rules: [
-  { required: true, message: "请输入密码" },
-  { min: 8, message: "密码长度不能小于 8 位" }
-]
-
-const valid = () => {
-    let isValid = true
-    
-    formList.forEach((item) => {
-        const value = formData[field]
-        if (item.validator) {
-            isValid = item.validator(value)
-        }
-        if (item.rules) {
-            for (const rule of rules) {
-                if (rule.required && !value) {
-                    isValid = false
-                }
-                if (rule.min) isValid = Number(value) < min
-                // TODO 校验其他规则
-                ....
-            }
-        }
-    })
-    
-    return isValid
-}
-```
 
 ```vue
 <script setup lang="ts">
@@ -670,8 +607,6 @@ export interface FormList {
   // date-range-picker
   dateRangePicker?: IDateRangePicker
 }
-
-
 
 interface IDateRangePicker {
   dateRange?: any[]

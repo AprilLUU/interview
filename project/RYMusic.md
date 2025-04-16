@@ -257,7 +257,7 @@ setContentHeight() {
   - 对state进行数据代理，在setter拦截器中触发事件
 
 ```javascript
-const playerStore = new HYEventStore({
+const playerStore = new EventStore({
   state: {
     isFirstPlay: true,
 
@@ -420,5 +420,5 @@ const playerStore = new HYEventStore({
 }
 ```
 
-- 进度匹配歌词，当前时间去歌词数组里面查找到对应的歌词，找到时间大于当前的歌词，上一句即为匹配到的歌词。
+- 进度匹配歌词，当前时间去歌词数组里面查找到对应的歌词，找到时间大于当前的歌词，上一句即为匹配到的歌词
   - 根据当前进度和总时间计算当前时间，去歌词数组找到第一个大于当前时间的歌词，前一个即为匹配到的歌词
